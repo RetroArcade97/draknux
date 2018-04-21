@@ -20,7 +20,8 @@ A remix of OpenDingux for the RS-97
     - backlight : down+<short delay>+up : switch backlight
     - backlight + left : clock down
     - backlight + right : clock up
-- target sdcard image
+- build int sdcard image
+- build target sdcard image
   - autoexec.sh : boot vfat on ext-sd
   - installer.dge : Menu to select install option
   - blobs/
