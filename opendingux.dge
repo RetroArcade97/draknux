@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+mydir=$(cd "$(dirname $0)" && pwd)
+cmd=$(basename $0 .dge)
+n=3
+rm -f $mydir/$cmd.$n.txt
+
+while [ $n -gt 0 ]
+do
+  m=$(expr $n - 1)
+  [ -f $mydir/$cmd.$m.txt ] && mv $mydir/$cmd.$m.txt $mydir/$cmd.$n.txt
+  n=$m
+done
+
+cleanup() {
+  for d in proc sys dev tmp var
+  do
+    umount $mydir/mnt/$d
+  done
+  umount $mydir/mnt/game
+  umount $mydir/mnt/int_sd
+  umount $mydir/mnt
+
+  for d in $(seq 0 2)
+  do
+    losetup -d /dev/loop$d
+  done
+}
+trap cleanup EXIT
+(
+  exec 2>&1
+  set -x
+
+  losetup /dev/loop0 $mydir/rootfs.img
+  losetup /dev/loop1 $mydir/game.img
+  losetup /dev/loop2 $mydir/roms.img
+
+  mount -t ext3 -r /dev/loop0 $mydir/mnt
+  mount -t vfat /dev/loop1 $mydir/mnt/mnt/game
+  mount -t vfat /dev/loop2 $mydir/mnt/mnt/int_sd
+
+  mount -o rbind /dev $mydir/mnt/dev
+  for x in proc sys tmp var
+  do
+    mount -o bind /$x $mydir/mnt/$x
+  done
+
+  cd $mydir/mnt
+
+  export \
+	SDL_NOMOUSE=1 \
+	HOME=/mnt/int_sd
+
+  #/usr/sbin/chroot . ./bin/sh /etc/main
+  /usr/sbin/chroot . ./bin/sh -c 'cd /mnt/game/gmenu2x && ./gmenu2x'
+) > $mydir/$cmd.$n.txt
