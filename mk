@@ -9,16 +9,10 @@ elif [ x"$1" = x"-x" ] ; then
   shift
   set -x
 fi
-
-set -euf -o pipefail
-die() {
-  local rc="$1" ; shift
-  echo "$@" 1>&2
-  exit $rc
-}
+mydir=$(dirname "$(readlink -f "$0")")
+. "$mydir/scripts/general.sh"
 
 main() {
-  mydir=$(dirname "$(readlink -f "$0")")
   if [ $# -eq 0 ] ; then
     echo "Usage: $0 [-s] [-x] <op> ...options..."
     echo "Available op's:"
@@ -32,25 +26,25 @@ main() {
     done
     exit
   fi
+  cksubmodules
   op="$1" ; shift
   op_"$op" "$@"
 }
 
-hlp_buildroot() {
-  echo "  Invoke buildroot make operations"
-  echo "  Usage: $0 buildroot <make options>"
-}
-op_buildroot() {
-  make -C "$mydir/buildroot" O="$mydir/br-output" BR2_EXTERNAL="$mydir" "$@"
+cksubmodules() {
+  # Check if submodules are all there...
+  grep -E '^\s*path\s*=\s*' "$mydir"/.gitmodules | sed 's/^\s*path\s*=\s*//' | while read subpath
+  do
+    if [ ! -e "$mydir/$subpath/.git" ] ; then
+      (cd "$mydir" && git submodule update --init --recursive)
+      return
+    fi
+  done
 }
 
-hlp_brcfg() {
-  echo "  Configure buildroot environment"
-  echo "  Usage: $0 brcfg"
-}
-op_brcfg() {
-  op_buildroot rs97_defconfig
-}
+# Define commands...
+. "$mydir/scripts/buildroot.sh"
+. "$mydir/scripts/genfs.sh"
 
 main "$@"
 
