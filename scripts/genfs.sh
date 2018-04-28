@@ -137,7 +137,8 @@ op_genfs() {
       setup_mntdir
       if [ -f "$src" ] ; then
 	info "Unpacking: $src"
-	root tar -C "$mntdir" -xf "$src"
+	g_unpack --root "$mntdir" "$src"
+	#root tar -C "$mntdir" -xf "$src"
       elif [ -d "$src" ] ; then
 	info "Copying: $src"
 	root cp -a "$src/." "$mntdir"
@@ -154,7 +155,9 @@ op_genfs() {
 	info "Unpacking: $src"
 	fakeroot <<-EOF
 	  $(declare -f gene2fs)
-	  tar -C "$srcdir" -xf "$src"
+	  $(declare -f g_unpack)
+	  # tar -C "$srcdir" -xf "$src"
+	  g_unpack "$srcdir" "$src"
 	  gene2fs "$part" "$srcdir"
 	EOF
       elif [ -d "$src" ] ; then
@@ -177,7 +180,8 @@ op_genfs() {
       setup_mntdir
       if [ -f "$src" ] ; then
 	info "Unpacking: $src"
-	root tar -C "$mntdir" --no-same-owner --no-same-permissions -xf "$src"
+	# root tar -C "$mntdir" --no-same-owner --no-same-permissions -xf "$src"
+	g_unpack --root "$mntdir" "$src" --no-same-owner --no-same-permissions
       elif [ -d "$src" ] ; then
 	info "Copying: $src"
 	root cp -r --preserve=timestamps "$src/." "$mntdir"
@@ -187,7 +191,11 @@ op_genfs() {
     else
       if [ -f "$src" ] ; then
 	setup_srcdir
-	fakeroot -- tar -C "$srcdir" -xf "$src"
+	fakeroot <<-EOF
+	  $(declare -f g_unpack)
+	  g_unpack "$srcdir" "$src"
+	EOF
+	# fakeroot -- tar -C "$srcdir" -xf "$src"
       elif [ ! -d "$src" ] ; then
 	die 7 "$src: Invalid type"
       fi
