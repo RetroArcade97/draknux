@@ -17,8 +17,9 @@ cleanup() {
   do
     umount $mydir/mnt/$d
   done
-  umount $mydir/mnt/game
-  umount $mydir/mnt/int_sd
+  umount $mydir/mnt/mnt/game
+  umount $mydir/mnt/mnt/int_sd
+  umount $mydir/mnt/mnt
   umount $mydir/mnt
 
   for d in $(seq 0 2)
@@ -35,7 +36,17 @@ trap cleanup EXIT
   losetup /dev/loop1 $mydir/game.img
   losetup /dev/loop2 $mydir/roms.img
 
+
   mount -t ext3 -r /dev/loop0 $mydir/mnt
+  sd=false
+  for d in game int_sd ext_sd
+  do
+    [ ! -d $mydir/mnt/mnt/$d ] && sd=true
+  done
+  if $sd ; then
+    mount -t tmpfs tmpfs $mydir/mnt/mnt
+    mkdir $mydir/mnt/mnt/{game,int_sd,ext_sd}
+  fi
   mount -t vfat /dev/loop1 $mydir/mnt/mnt/game
   mount -t vfat /dev/loop2 $mydir/mnt/mnt/int_sd
 
