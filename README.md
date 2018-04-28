@@ -38,13 +38,4 @@ A remix of OpenDingux for the RS-97
   - vfat on int-sd (multiboot support)
   - int-sd image replacement
   - Just run it
-- edit tar image
-
-      edit_tar $file <<EOF
-      # under fakeroot,
-      # $dst
-      cp -a srcfile $dst/target_path
-      ...
-      EOF
-
 
