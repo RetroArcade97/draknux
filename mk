@@ -45,6 +45,7 @@ cksubmodules() {
 # Define commands...
 . "$mydir/scripts/buildroot.sh"
 . "$mydir/scripts/genfs.sh"
+. "$mydir/scripts/tarops.sh"
 
 main "$@"
 
